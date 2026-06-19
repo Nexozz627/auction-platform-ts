@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Platform - Full Stack API</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ============ HEADER ============ */
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
+        button:disabled:hover {
+            background: #ccc;
+            transform: none;
+        }
+
+        /* ============ TABS ============ */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        /* ============ SECTIONS ============ */
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* ============ FORM ============ */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* ============ CARDS ============ */
+        .card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .card-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item strong {
+            color: #667eea;
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .price {
+            font-size: 20px;
+            color: #764ba2;
+            font-weight: 700;
+        }
+
+        /* ============ ALERTS ============ */
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .alert.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        /* ============ GRID ============ */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* ============ LOADING ============ */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ============ HIDDEN ============ */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .card-info {
+                grid-template-columns: 1fr;
+            }
+
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ============ HEADER ============ -->
+        <header>
+            <h1>🏆 Auction Platform</h1>
+            <div class="user-info" id="userInfo">
+                <span class="user-badge" id="userBadge">Not logged in</span>
+                <button id="logoutBtn" class="hidden" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <!-- ============ ALERTS ============ -->
+        <div id="alertContainer"></div>
+
+        <!-- ============ TABS ============ -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('auth')" id="authTab">Authentication</button>
+            <button class="tab-button" onclick="switchTab('items')">Items</button>
+            <button class="tab-button" onclick="switchTab('create-item')" id="createItemTab" disabled>Create Item</button>
+            <button class="tab-button" onclick="switchTab('my-items')" id="myItemsTab" disabled>My Items</button>
+        </div>
+
+        <!-- ============ AUTH TAB ============ -->
+        <div id="auth" class="tab-content active">
+            <h2>Authentication</h2>
+            
+            <!-- Login Form -->
+            <div style="margin-bottom: 40px;">
+                <h3>Login</h3>
+                <div class="form-group">
+                    <label>Email or Username</label>
+                    <input type="text" id="loginIdentifier" placeholder="amine_dev or amine@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password">
+                </div>
+                <button onclick="login()" style="margin-bottom: 20px;">Sign In</button>
+
+                <div id="g_id_onload"
+                     data-client_id="493489394378-8hiu09vp5r3rg3gvqca05og2lsi3cj34.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse">
+                </div>
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">Or sign in with Google:</p>
+                <div class="g_id_signin" data-type="standard" style="margin-top: 10px;"></div>
+            </div>
+
+            <hr style="margin: 40px 0; border: none; border-top: 2px solid #eee;">
+
+            <!-- Register Form -->
+            <div>
+                <h3>Register</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="registerUsername" placeholder="amine_dev">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="registerEmail" placeholder="amine@example.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="registerFirstName" placeholder="Amine">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="registerLastName" placeholder="Boudjemaa">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" placeholder="Min. 8 characters">
+                </div>
+                <button onclick="register()">Sign Up</button>
+            </div>
+        </div>
+
+        <!-- ============ ITEMS TAB ============ -->
+        <div id="items" class="tab-content">
+            <h2>Items Available for Auction</h2>
+            <button onclick="loadItems()" style="margin-bottom: 20px;">Refresh</button>
+            <div id="itemsList"></div>
+        </div>
+
+        <!-- ============ CREATE ITEM TAB ============ -->
+        <div id="create-item" class="tab-content">
+            <h2>Create New Item</h2>
+            <div class="form-group">
+                <label>Item Title</label>
+                <input type="text" id="itemTitle" placeholder="Vintage Rolex Watch">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="itemCategory">
+                        <option value="">Select a category</option>
+                        <option value="CLOTHING">Clothing</option>
+                        <option value="SPORTS_EQUIPMENT">Sports Equipment</option>
+                        <option value="ACCESSORIES">Accessories</option>
+                        <option value="WATCHES">Watches</option>
+                        <option value="ELECTRONICS">Electronics</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Starting Price ($)</label>
+                    <input type="number" id="itemStartPrice" placeholder="500" min="0.01" step="0.01">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Auction Duration (days)</label>
+                    <select id="itemEndDays">
+                        <option value="">Select duration</option>
+                        <option value="1">1 day</option>
+                        <option value="3">3 days</option>
+                        <option value="7">7 days</option>
+                        <option value="14">14 days</option>
+                        <option value="30">30 days</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>End Time (optional)</label>
+                    <input type="time" id="itemEndTime" value="18:00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="itemDescription" placeholder="Describe your item..."></textarea>
+            </div>
+            <button onclick="createItem()">Publish Item</button>
+        </div>
+
+        <!-- ============ MY ITEMS TAB ============ -->
+        <div id="my-items" class="tab-content">
+            <h2>My Items</h2>
+            <button onclick="loadMyItems()" style="margin-bottom: 20px;">Load My Items</button>
+            <div id="myItemsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5001';
+        let currentUser = null;
+        let token = null;
+
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+
+        // ============ AUTHENTICATION ============
+        function checkAuth() {
+            const savedToken = localStorage.getItem('token');
+            if (savedToken) {
+                token = savedToken;
+                getMe();
+            }
+        }
+
+        async function getMe() {
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Not authenticated');
+
+                const data = await res.json();
+                currentUser = data.user;
+                updateUI();
+                showAlert('Reconnected successfully!', 'success');
+            } catch (error) {
+                console.log("unreachable server or invalid sesion, waiting...");
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const firstName = document.getElementById('registerFirstName').value;
+            const lastName = document.getElementById('registerLastName').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (!username || !email || !firstName || !lastName || !password) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, firstName, lastName, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', token);
+                updateUI();
+                showAlert('Registration successful! Welcome ' + username, 'success');
+                setTimeout(() => switchTab('items'), 500);
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerFirstName').value = '';
+                document.getElementById('registerLastName').value = '';
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function login() {
+            const identifier = document.getElementById('loginIdentifier').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!identifier || !password) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', token);
+                updateUI();
+                showAlert('Login successful! Welcome ' + identifier, 'success');
+                setTimeout(() => switchTab('items'), 500);
+                document.getElementById('loginIdentifier').value = '';
+                document.getElementById('loginPassword').value = '';
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function handleCredentialResponse(response) {
+            try {
+                const res = await fetch(`${API_URL}/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: response.credential })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', token);
+                updateUI();
+                showAlert('Google login successful! Welcome ' + data.user.username, 'success');
+                setTimeout(() => switchTab('items'), 500);
+            } catch (error) {
+                showAlert('Google error: ' + error.message, 'error');
+            }
+        }
+
+        function logout() {
+            try {
+                fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+
+            localStorage.removeItem('token');
+            token = null;
+            currentUser = null;
+            updateUI();
+            showAlert('Successfully logged out', 'success');
+            switchTab('auth');
+        }
+
+        // ============ ITEMS MANAGEMENT ============
+        async function loadItems() {
+            const container = document.getElementById('itemsList');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading items...</p></div>';
+
+            try {
+                const res = await fetch(`${API_URL}/items`);
+                const items = await res.json();
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">No items available</p>';
+                    return;
+                }
+
+                container.innerHTML = '<div class="items-grid">' + items.map(item => createItemCard(item)).join('') + '</div>';
+            } catch (error) {
+                container.innerHTML = '<div class="alert error">Error: ' + error.message + '</div>';
+            }
+        }
+
+        function createItemCard(item, hideButton = false) {
+            const endDate = new Date(item.endTime);
+            const now = new Date();
+            const isEnded = endDate <= now;
+            const statusBadge = isEnded ? '<span class="badge closed">Ended</span>' : '<span class="badge active">Active</span>';
+            const buttonHTML = hideButton ? '' : '<button onclick="viewItem(\'' + item.id + '\')" style="width: 100%;">View & Bid</button>';
+
+            return `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                        <div>
+                            <h3>${item.title}</h3>
+                            <span style="color: #999; font-size: 12px;">${item.category}</span>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    <div class="card-info">
+                        <div class="info-item">
+                            <strong>Current Price</strong>
+                            <div class="price">$${item.currentPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <strong>Starting Price</strong>
+                            <div>$${item.startingPrice.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="info-item" style="margin-bottom: 15px;">
+                        <strong>Auction Ends</strong>
+                        <div>${new Date(item.endTime).toLocaleString('en-US')}</div>
+                    </div>
+                    ${item.description ? '<p style="margin-bottom: 15px; color: #666;">' + item.description + '</p>' : ''}
+                    ${buttonHTML}
+                </div>
+            `;
+        }
+
+        async function viewItem(itemId) {
+            if (!currentUser) {
+                showAlert('You must be logged in', 'warning');
+                switchTab('auth');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/items/${itemId}`);
+                const data = await res.json();
+                const item = data.item;
+
+                const amount = prompt('Enter your bid amount (minimum: $' + item.currentPrice + ')');
+                if (!amount) return;
+
+                await placeBid(itemId, parseFloat(amount));
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function placeBid(itemId, amount) {
+            try {
+                const res = await fetch(`${API_URL}/items/${itemId}/bid`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                showAlert('Bid placed successfully!', 'success');
+                loadItems();
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function createItem() {
+            const title = document.getElementById('itemTitle').value;
+            const category = document.getElementById('itemCategory').value;
+            const startingPrice = parseFloat(document.getElementById('itemStartPrice').value);
+            const endDays = parseInt(document.getElementById('itemEndDays').value);
+            const endTime = document.getElementById('itemEndTime').value;
+            const description = document.getElementById('itemDescription').value;
+
+            if (!title || !category || !startingPrice || !endDays) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            if (!currentUser) {
+                showAlert('You must be logged in', 'warning');
+                switchTab('auth');
+                return;
+            }
+
+            // Calculate end date
+            let endDateTime = new Date();
+            endDateTime.setDate(endDateTime.getDate() + endDays);
+            
+            // Apply end time if provided
+            if (endTime) {
+                const [hours, minutes] = endTime.split(':');
+                endDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
+            }
+
+            // Check that it's at least 24h from now
+            const now = new Date();
+            const minDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+            if (endDateTime <= minDate) {
+                showAlert('Auction must end at least 24 hours from now', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/items/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        category,
+                        startingPrice,
+                        endTime: endDateTime.toISOString(),
+                        description
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                showAlert('Item created successfully!', 'success');
+                document.getElementById('itemTitle').value = '';
+                document.getElementById('itemCategory').value = '';
+                document.getElementById('itemStartPrice').value = '';
+                document.getElementById('itemEndDays').value = '';
+                document.getElementById('itemEndTime').value = '18:00';
+                document.getElementById('itemDescription').value = '';
+                loadItems();
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadMyItems() {
+            if (!currentUser) {
+                showAlert('You must be logged in', 'warning');
+                switchTab('auth');
+                return;
+            }
+
+            const container = document.getElementById('myItemsList');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading your items...</p></div>';
+
+            try {
+                const res = await fetch(`${API_URL}/items`);
+                const allItems = await res.json();
+                const myItems = allItems.filter(item => item.createdBy === currentUser.id);
+
+                if (myItems.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">You haven\'t created any items yet</p>';
+                    return;
+                }
+
+                container.innerHTML = '<div class="items-grid">' + myItems.map(item => createItemCard(item, true)).join('') + '</div>';
+            } catch (error) {
+                container.innerHTML = '<div class="alert error">Error: ' + error.message + '</div>';
+            }
+        }
+
+        // ============ UI HELPERS ============
+        function updateUI() {
+            const userBadge = document.getElementById('userBadge');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const authTab = document.getElementById('authTab');
+            const createItemTab = document.getElementById('createItemTab');
+            const myItemsTab = document.getElementById('myItemsTab');
+
+            if (currentUser) {
+                userBadge.textContent = '👤 ' + currentUser.username;
+                logoutBtn.classList.remove('hidden');
+                authTab.classList.add('hidden');
+                createItemTab.disabled = false;
+                createItemTab.style.opacity = '1';
+                createItemTab.style.cursor = 'pointer';
+                myItemsTab.disabled = false;
+                myItemsTab.style.opacity = '1';
+                myItemsTab.style.cursor = 'pointer';
+            } else {
+                userBadge.textContent = 'Not logged in';
+                logoutBtn.classList.add('hidden');
+                authTab.classList.remove('hidden');
+                createItemTab.disabled = true;
+                createItemTab.style.opacity = '0.5';
+                createItemTab.style.cursor = 'not-allowed';
+                myItemsTab.disabled = true;
+                myItemsTab.style.opacity = '0.5';
+                myItemsTab.style.cursor = 'not-allowed';
+            }
+        }
+
+        function switchTab(tabName) {
+            // Check if user is trying to access protected tabs
+            if (!currentUser && (tabName === 'create-item' || tabName === 'my-items')) {
+                switchTab('auth');
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'items') loadItems();
+            if (tabName === 'my-items') loadMyItems();
+        }
+
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

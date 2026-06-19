@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id String @id @default(uuid())
+  username String @unique 
+  email String @unique
+  firstName String
+  lastName String
+  password String? 
+  
+
+  createdAt DateTime @default(now())
+
+  items Item[] 
+  bids Bid[]
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  title         String
+  category    Categories @default(CLOTHING)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  endTime     DateTime
+  startingPrice Float
+  currentPrice Float
+  description String?
+  highestBidId String? @unique
+  status Status @default(ACTIVE)
+
+  creator User @relation(fields: [createdBy], references: [id],onDelete: Cascade)
+  bid Bid[] @relation("ItemBids")
+  highestBid Bid? @relation("HighestBid", fields: [highestBidId], references: [id], onDelete: Cascade)
+  
+}
+
+model Bid {
+  id        String          @id @default(uuid())
+  userId    String
+  itemId    String
+  amount    Float // Verify that it is strictly greater than all other amounts
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @default(now())
+  isValid   Boolean // Set to false as soon as the price is exceeded
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation("ItemBids", fields: [itemId], references: [id], onDelete: Cascade)
+  highestBidItem Item? @relation("HighestBid")
+
+
+}
+
+enum Categories {
+  CLOTHING
+  SPORTS_EQUIPMENT
+  ACCESSORIES
+  WATCHES
+  ELECTRONICS
+}
+
+enum Status{
+  ACTIVE
+  CLOSED
+  COMPLETED
+}
+

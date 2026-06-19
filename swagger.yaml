@@ -1,0 +1,606 @@
+openapi: 3.0.3
+info:
+  title: Plateforme d'Enchères - API Backend
+  description: API complète pour une plateforme d'enchères en temps réel
+  version: 1.0.0
+  contact:
+    name: Support API
+    email: support@encheres.com
+servers:
+  - url: http://localhost:5001
+    description: Serveur Local Développement
+
+tags:
+  - name: Authentication
+    description: Endpoints d'authentification et d'autorisation
+  - name: Items
+    description: Endpoints pour gérer les articles/annonces
+  - name: Bids
+    description: Endpoints pour gérer les enchères
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        username:
+          type: string
+          example: "amine_dev"
+        email:
+          type: string
+          format: email
+          example: "amine@example.com"
+        firstName:
+          type: string
+          example: "Amine"
+        lastName:
+          type: string
+          example: "Boudjemaa"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-06-19T10:30:00Z"
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Montre Rolex Occasion"
+        category:
+          type: string
+          enum: [CLOTHING, SPORTS_EQUIPMENT, ACCESSORIES, WATCHES, ELECTRONICS]
+          example: "WATCHES"
+        description:
+          type: string
+          example: "Montre de luxe en excellent état"
+        createdBy:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        createdAt:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+          description: Date/heure de fin de l'enchère
+        startingPrice:
+          type: number
+          format: float
+          example: 500.00
+        currentPrice:
+          type: number
+          format: float
+          example: 750.00
+        status:
+          type: string
+          enum: [ACTIVE, CLOSED, COMPLETED]
+          example: "ACTIVE"
+        highestBidId:
+          type: string
+          format: uuid
+          nullable: true
+
+    Bid:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        itemId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+          example: 850.00
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isValid:
+          type: boolean
+          description: Indique si cette enchère est toujours valide
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Message d'erreur"
+        message:
+          type: string
+          example: "Détails supplémentaires"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token stocké dans un cookie HTTP-only
+
+paths:
+  # ==================== AUTHENTICATION ====================
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Inscription d'un nouvel utilisateur
+      description: Crée un nouveau compte utilisateur avec email et mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - firstName
+                - lastName
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "amine_dev"
+                  minLength: 3
+                email:
+                  type: string
+                  format: email
+                  example: "amine@example.com"
+                firstName:
+                  type: string
+                  example: "Amine"
+                lastName:
+                  type: string
+                  example: "Boudjemaa"
+                password:
+                  type: string
+                  example: "Securise123!"
+                  minLength: 8
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      email:
+                        type: string
+                        format: email
+                  token:
+                    type: string
+                    description: JWT token
+        '400':
+          description: Données invalides ou utilisateur existe déjà
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Nom d'utilisateur déjà pris
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "invalid username"
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur avec email/username et mot de passe. Le JWT est retourné et stocké dans un cookie HTTP-only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifier
+                - password
+              properties:
+                identifier:
+                  type: string
+                  example: "amine_dev"
+                  description: "Email ou username"
+                password:
+                  type: string
+                  example: "Securise123!"
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Utilisateur inscrit avec Google - utiliser /auth/google
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "try with google"
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "invalid email or password"
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Déconnexion utilisateur
+      description: Termine la session utilisateur
+      responses:
+        '200':
+          description: Déconnecté avec succès
+        '500':
+          description: Erreur serveur
+
+  /auth/google:
+    post:
+      tags: [Authentication]
+      summary: Authentification Google OAuth2
+      description: Authentifie un utilisateur via un token Google OAuth2. Crée un compte automatiquement s'il n'existe pas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idToken
+              properties:
+                idToken:
+                  type: string
+                  description: "Token ID reçu de Google OAuth2"
+                  example: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ..."
+      responses:
+        '200':
+          description: Authentification Google réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Authentification Google réussie"
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      username:
+                        type: string
+                      email:
+                        type: string
+        '400':
+          description: Token requis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "le jeton est requis"
+        '401':
+          description: Token Google invalide ou expiré
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Jeton Google invalide ou expiré."
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Récupérer l'utilisateur connecté
+      description: Retourne les informations de l'utilisateur actuellement authentifié
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Utilisateur récupéré
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+
+  # ==================== ITEMS / ARTICLES ====================
+  /items:
+    get:
+      tags: [Items]
+      summary: Récupérer tous les articles actifs
+      description: Retourne la liste des articles dont l'enchère n'est pas terminée, triée par date de création décroissante
+      responses:
+        '200':
+          description: Liste des articles actifs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /items/create:
+    post:
+      tags: [Items]
+      summary: Créer un nouvel article
+      description: Crée un nouvel article pour être mis en enchère. Authentification requise
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - category
+                - endTime
+                - startingPrice
+              properties:
+                title:
+                  type: string
+                  example: "Montre Rolex Occasion"
+                category:
+                  type: string
+                  enum: [CLOTHING, SPORTS_EQUIPMENT, ACCESSORIES, WATCHES, ELECTRONICS]
+                  example: "WATCHES"
+                endTime:
+                  type: string
+                  format: date-time
+                  example: "2026-06-26T18:00:00Z"
+                  description: "Date/heure de fin de l'enchère"
+                startingPrice:
+                  type: number
+                  format: float
+                  example: 500.00
+                  minimum: 0.01
+                description:
+                  type: string
+                  example: "Montre de luxe en excellent état, avec boîte d'origine"
+      responses:
+        '201':
+          description: Article créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "created"
+                  item:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      createdBy:
+                        type: string
+                        format: uuid
+        '401':
+          description: Non authentifié
+        '500':
+          description: Erreur serveur lors de la création
+
+  /items/{id}:
+    get:
+      tags: [Items]
+      summary: Récupérer les détails d'un article
+      description: Retourne les informations complètes d'un article spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Article trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "found the product"
+                  item:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      title:
+                        type: string
+        '404':
+          description: Article non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "the product no longer exists"
+        '500':
+          description: Erreur serveur
+
+  # ==================== BIDS / ENCHERES ====================
+  /items/{id}/bid:
+    post:
+      tags: [Bids]
+      summary: Placer une enchère
+      description: |
+        Place une enchère sur un article. Plusieurs règles s'appliquent:
+        - Le montant doit être strictement supérieur au prix actuel
+        - L'enchère doit se terminer dans le futur
+        - Le créateur de l'article ne peut pas enchérir
+        - Invalide automatiquement toutes les enchères précédentes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  format: float
+                  example: 750.00
+                  description: "Le montant de l'enchère (doit être > currentPrice)"
+      responses:
+        '201':
+          description: Enchère placée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "bid created"
+                  bid:
+                    type: object
+                    properties:
+                      amount:
+                        type: number
+        '400':
+          description: Enchère invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidAmount:
+                  value:
+                    error: "invalid amount"
+                    message: "Le montant doit être positif"
+                AmountTooLow:
+                  value:
+                    error: "the amount have to be greater than 500.00"
+                HigherBidPlaced:
+                  value:
+                    error: "A higher bid has been placed in the meantime."
+                SellerCannotBid:
+                  value:
+                    error: "you are the seller of this item"
+                AuctionEnded:
+                  value:
+                    error: "this enchere has ended"
+        '401':
+          description: Non authentifié
+        '404':
+          description: Article non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "the product no longer exists"
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
