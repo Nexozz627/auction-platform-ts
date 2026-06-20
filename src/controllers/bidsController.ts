@@ -1,6 +1,12 @@
+import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
+import { any } from "zod";
 
-const createBid = async (req, res) => {
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+
+const createBid = async (req: AuthenticatedRequest, res: Response) => {
     try{
         // Vérifier que l'utilisateur est authentifié
         if (!req.user || !req.user.id) {
@@ -9,7 +15,7 @@ const createBid = async (req, res) => {
 
         const amount = parseFloat(req.body.amount);
 
-        const { id } = req.params;
+        const id = req.params.id as string;
 
         if (isNaN(amount) || amount <= 0) {
             return res.status(400).json({ error: "invalid amount" });
@@ -46,7 +52,7 @@ const createBid = async (req, res) => {
         const result = await prisma.$transaction(async (tx) => {
 
             //reverifier pour prendre le currentPrice le plus frais 
-            const currentItem = await tx.item.findUnique({ 
+            const currentItem: any = await tx.item.findUnique({ 
                 where: { id } 
             });
 
@@ -82,7 +88,7 @@ const createBid = async (req, res) => {
             },
         })
 
-    }catch (error) {
+    }catch (error: any) {
         if (error.message === "A higher bid has been placed in the meantime.") {
             return res.status(400).json({ error: "A higher bid has been placed. Please try again." });
         }

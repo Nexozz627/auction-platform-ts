@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
@@ -5,7 +6,7 @@ import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const googleAuth = async(req, res) => {
+const googleAuth = async(req: Request, res: Response) => {
     const { idToken } = req.body;
 
     if(!idToken){
@@ -18,7 +19,7 @@ const googleAuth = async(req, res) => {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
 
-        const payload = ticket.getPayload();
+        const payload = ticket.getPayload() as any;
         const { email, sub: googleId, given_name, family_name } = payload;
 
         let user = await prisma.user.findUnique({
@@ -55,7 +56,7 @@ const googleAuth = async(req, res) => {
     }
 };
 
-const register = async (req, res) => {
+const register = async (req: Request, res: Response) => {
     try {
         const {username, firstName, lastName, email, password} = req.body;
 
@@ -120,7 +121,7 @@ const register = async (req, res) => {
     }
 };
 
-const login = async (req,res) => {
+const login = async (req: Request,res: Response) => {
     try {
         const {identifier, password} = req.body;
 
@@ -173,7 +174,7 @@ const login = async (req,res) => {
     }
 }; 
 
-const logout = async (req, res) => {
+const logout = async (req: Request, res: Response) => {
     try {
         res.cookie("jwt", "", {
             httpOnly : true,

@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { prisma } from "../src/config/db.js";
+import { prisma } from "../config/db.js";
 import { Status } from "@prisma/client";
 
 const startAuctionCron = () => {
@@ -33,10 +33,10 @@ const startAuctionCron = () => {
 
                 for (const item of items ){
 
-                const winnerExists = item.highestBid?.user?.username; 
+                const winnerUsername = item.highestBid?.user?.username; 
 
-                if(winnerExists){
-                    console.log(`${item.highestBid.user.username} is the winner of ${item.title} `)
+                if(winnerUsername){
+                    console.log(`${winnerUsername} is the winner of ${item.title} `)
                 }else{
                     console.log(`${item.title} didn't sell`)
                 }

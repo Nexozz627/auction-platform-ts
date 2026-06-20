@@ -9,7 +9,7 @@ import { config } from 'dotenv';
 import { connectDB, disconnectDB } from "./config/db.js";
 import itemsRoutes from "./routes/itemsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import { startAuctionCron } from "../jobs/auctionJob.js";
+import { startAuctionCron } from "./jobs/auctionJob.js";
 
 config();
 
@@ -44,7 +44,7 @@ const server = app.listen(PORT, () => {
 startAuctionCron();
 
 // Graceful shutdown function
-const shutdown = async (signal) => {
+const shutdown = async (signal: string) => {
     console.log(`\n${signal} received. Cleaning up and shutting down...`);
     
     // 1. Close the server (stops new connections)

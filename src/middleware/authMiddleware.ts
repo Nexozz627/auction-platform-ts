@@ -1,7 +1,12 @@
+import { Request, Response, NextFunction } from "express";
 import jwt from  "jsonwebtoken";
 import { prisma } from "../config/db.js";
 
-export const authMiddleware = async (req, res, next) => {
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+
+export const authMiddleware = async (req : AuthenticatedRequest, res: Response, next:   NextFunction) => {
     let token;
 
     if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")){
@@ -15,10 +20,10 @@ export const authMiddleware = async (req, res, next) => {
     }
 
     try{
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any; 
         
         const user = await prisma.user.findUnique({
-            where: {id: decoded.id},
+            where: {id: decoded.id },
             select:{
                 id: true,
                 username: true,
@@ -34,7 +39,7 @@ export const authMiddleware = async (req, res, next) => {
 
         req.user = user;
         next();
-    }catch (err){
+    }catch (err : any){
          return res.status(401).json({error: "Token verification failed", message: err.message});
     }
 };

@@ -1,7 +1,17 @@
+import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
 
-const create = async (req, res) => {
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+
+const create = async (req: AuthenticatedRequest, res: Response) => {
     try {
+
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ error: "Unauthorized - you must be logged in" });
+        }
+
         const { title, category, endTime, startingPrice, description} = req.body;
 
         const userId = req.user.id;
@@ -31,9 +41,9 @@ const create = async (req, res) => {
     }
 }
 
-const select = async (req, res) => {
+const select = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id  = req.params.id as string;
 
         const item = await prisma.item.findUnique({where : { id }});
 
@@ -56,7 +66,7 @@ const select = async (req, res) => {
     }
 }
 
-const getActiveItems = async (req, res) => {
+const getActiveItems = async (req: Request, res: Response) => {
     try {
 
         const activeItems = await prisma.item.findMany({
