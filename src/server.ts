@@ -25,7 +25,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS
 
 const corsOptions = {
   origin: allowedOrigins,
-  credentials: true, // Important si tu utilises des cookies ou des sessions (Auth)
+  credentials: true, //for cookies
   optionsSuccessStatus: 200
 };
 
