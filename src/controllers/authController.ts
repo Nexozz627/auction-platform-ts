@@ -28,10 +28,15 @@ const googleAuth = async(req: Request, res: Response) => {
 
 
         if(!user){
+
+            //username
+            const rawName = `${given_name || ""} ${family_name || ""}`.trim();
+            const newUsername = rawName !== "" ? rawName : `user_${googleId.substring(0, 8)}`;
+
             user = await prisma.user.create({
                 data:{
                     email: email,
-                    username: `user_${googleId.substring(0, 8)}`,
+                    username: newUsername,
                     firstName: given_name || "",
                     lastName: family_name || "",
                     password: null, 
@@ -59,6 +64,18 @@ const googleAuth = async(req: Request, res: Response) => {
 const register = async (req: Request, res: Response) => {
     try {
         const {username, firstName, lastName, email, password} = req.body;
+
+        
+        console.log("=== DEBUG REGISTER ===");
+        console.log("complete body received :", req.body);
+
+        //checking the zod + middleware
+        if (!username || !email || !password) {
+            return res.status(400).json({ 
+                error: "missing something", 
+                bodyRecu: req.body 
+            });
+        }
 
         // Check if user exists
         const userExists = await prisma.user.findUnique({
@@ -112,8 +129,7 @@ const register = async (req: Request, res: Response) => {
                 id: user.id,
                 name: username,
                 email: email,
-            },
-            token,
+            }
         })
     } catch (error) {
         console.error("Register error:", error);
@@ -138,7 +154,7 @@ const login = async (req: Request,res: Response) => {
         if (!user){
             return res
                 .status(401)
-                .json({error: "Invalid email or password"});    
+                .json({error: "Invalid email/username or password"});    
         }
 
         // Block login attempt if user registered with Google
@@ -153,7 +169,7 @@ const login = async (req: Request,res: Response) => {
         if (!isPasswordValid){
             return res
                 .status(401)
-                .json({error: "Invalid email or password"});    
+                .json({error: "Invalid email/username or password"});    
         }
 
         // Generate JWT token
@@ -165,8 +181,7 @@ const login = async (req: Request,res: Response) => {
                 id: user.id,
                 email: user.email,
                 username: user.username,
-            },
-            token,
+            }
         })
     } catch (error) {
         console.error("Login error:", error);
@@ -176,6 +191,8 @@ const login = async (req: Request,res: Response) => {
 
 const logout = async (req: Request, res: Response) => {
     try {
+
+        //empty the token from the browser 
         res.cookie("jwt", "", {
             httpOnly : true,
             expires: new Date(0),

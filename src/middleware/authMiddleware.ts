@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import jwt from  "jsonwebtoken";
 import { prisma } from "../config/db.js";
 
+//validate user's token
+
 interface AuthenticatedRequest extends Request {
     user?: any;
 }

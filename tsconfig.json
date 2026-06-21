@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2022",                          // Génère un JavaScript moderne compatible avec Node.js
-    "module": "NodeNext",                        // Indispensable pour les projets Node récents
-    "moduleResolution": "NodeNext",              // Permet à TS de trouver correctement tes packages dans node_modules
+    "target": "ES2022",                          
+    "module": "NodeNext",                        
+    "moduleResolution": "NodeNext",              // for ts to find my packages node_modules
+    "types": ["node"],
+
+    "rootDir": "./src",                          
+    "outDir": "./dist",                          
     
-    "rootDir": "./src",                          // Là où tu vas mettre tes fichiers .ts
-    "outDir": "./dist",                          // Là où TS va créer les fichiers .js finaux pour ton VPS Octenium
-    
-    "strict": true,                              // Active la sécurité de base de TS (le filet de sécurité)
+    "strict": true,                              
     "allowJs": true,
-    "esModuleInterop": true,                     // Permet d'importer Express proprement (import express from 'express')
-    "skipLibCheck": true                         // Ignore les erreurs de types des packages externes (indispensable avec Prisma)
+    "esModuleInterop": true,                     // (import express from 'express')
+    "skipLibCheck": true                         // ignore Prisma errors
   },
-  "include": ["src/**/*"]                        // Dit à TS de surveiller uniquement le dossier src
+  "include": ["src/**/*"]                        // ts only for src folder
 }

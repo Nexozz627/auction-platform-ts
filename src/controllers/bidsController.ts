@@ -2,13 +2,14 @@ import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
 import { any } from "zod";
 
+//ts for type of req.user.id
 interface AuthenticatedRequest extends Request {
     user?: any;
 }
 
 const createBid = async (req: AuthenticatedRequest, res: Response) => {
     try{
-        // Vérifier que l'utilisateur est authentifié
+        // verify it you're autheticated
         if (!req.user || !req.user.id) {
             return res.status(401).json({ error: "Unauthorized - you must be logged in" });
         }
@@ -49,19 +50,20 @@ const createBid = async (req: AuthenticatedRequest, res: Response) => {
 
         const userId = req.user.id;
 
+        //all or nothing executed in this bloc to eliminate race condition between bidders
         const result = await prisma.$transaction(async (tx) => {
 
-            //reverifier pour prendre le currentPrice le plus frais 
+            //item still exists
             const currentItem: any = await tx.item.findUnique({ 
                 where: { id } 
             });
 
-            // 2. On refait la vérification ici pour bloquer les requêtes simultanées trop basses
+            // validation
             if (amount <= currentItem.currentPrice) {
                 throw new Error("A higher bid has been placed in the meantime.");
             }
 
-            // Invalidate previous bids
+            // Invalidate all previous bids in the bid table
             await tx.bid.updateMany({
                 where: { itemId: id, isValid: true },
                 data: { isValid: false }

@@ -41,6 +41,7 @@ const create = async (req: AuthenticatedRequest, res: Response) => {
     }
 }
 
+//not used yet
 const select = async (req: Request, res: Response) => {
     try {
         const id  = req.params.id as string;

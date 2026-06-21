@@ -479,7 +479,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5001';
+        const API_URL = 'https://api.amine-abbaci.xyz'; // my backend domain 
         let currentUser = null;
         let token = null;
 
@@ -627,7 +627,7 @@
             switchTab('auth');
         }
 
-        // ============ ITEMS MANAGEMENT ============
+        // ======== ITEMS MANAGEMENT ==============
         async function loadItems() {
             const container = document.getElementById('itemsList');
             container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading items...</p></div>';
