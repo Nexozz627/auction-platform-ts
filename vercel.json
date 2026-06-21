@@ -1,5 +1,0 @@
-{
-  "buildCommand": "echo 'Pas de build nécessaire'",
-  "outputDirectory": ".",
-  "framework": null
-}

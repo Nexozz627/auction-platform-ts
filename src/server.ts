@@ -21,19 +21,15 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  // 
-  origin: [
-    "http://127.0.0.1:5500",           // my local live server
-    //"https://amine-abbaci.xyz",         // my domain
-    //"https://www.amine-abbaci.xyz",     
-    "https://auction-platform-b9aq91rnk-auction-platform.vercel.app",
-    "https://auction-platform-ts.vercel.app"     
-  ],
-  
-  // REQUIRED for the browser to accept and store the HTTP-only cookie
-  credentials: true 
-}));
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true, // Important si tu utilises des cookies ou des sessions (Auth)
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 //my routes
 app.use("/items", itemsRoutes);

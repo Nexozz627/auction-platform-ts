@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auction Platform - Full Stack API</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" defer></script>
     <style>
         * {
             margin: 0;
@@ -374,10 +374,7 @@
                 </div>
                 <button onclick="login()" style="margin-bottom: 20px;">Sign In</button>
 
-                <div id="g_id_onload"
-                     data-client_id="493489394378-8hiu09vp5r3rg3gvqca05og2lsi3cj34.apps.googleusercontent.com"
-                     data-callback="handleCredentialResponse">
-                </div>
+                
                 <p style="margin-top: 15px; font-size: 14px; color: #666;">Or sign in with Google:</p>
                 <div class="g_id_signin" data-type="standard" style="margin-top: 10px;"></div>
             </div>
@@ -485,6 +482,7 @@
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', () => {
+            initGoogleAuth();
             checkAuth();
         });
 
@@ -494,6 +492,26 @@
             if (savedToken) {
                 token = savedToken;
                 getMe();
+            } else {
+                // Pas de token → propose le One Tap (popup coin haut droit)
+                if (typeof google !== 'undefined') {
+                    google.accounts.id.prompt();
+                }
+            }
+        }
+
+        function initGoogleAuth() {
+            if (typeof google !== 'undefined') {
+                google.accounts.id.initialize({
+                    client_id: "493489394378-8hiu09vp5r3rg3gvqca05og2lsi3cj34.apps.googleusercontent.com",
+                    callback: handleCredentialResponse
+                });
+
+                // Dessine le vrai bouton "Sign in with Google" dans son div
+                google.accounts.id.renderButton(
+                    document.querySelector('.g_id_signin'),
+                    { type: 'standard' }
+                );
             }
         }
 
@@ -510,9 +528,14 @@
                 updateUI();
                 showAlert('Reconnected successfully!', 'success');
             } catch (error) {
-                console.log("unreachable server or invalid sesion, waiting...");
+                console.log("unreachable server or invalid session, waiting...");
+                localStorage.removeItem('token');
+                if (typeof google !== 'undefined') {
+                    google.accounts.id.prompt();
+                }
             }
         }
+
 
         async function register() {
             const username = document.getElementById('registerUsername').value;
