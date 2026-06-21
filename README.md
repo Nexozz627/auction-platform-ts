@@ -93,6 +93,13 @@ npx prisma migrate dev
 npm run dev
 ```
 
+### you can use the seed.ts to fill the tables with the command
+
+```bash
+npx tsx seed.ts
+```
+
+
 The API will be available at `http://localhost:5001`
 
 Main endpoints (you can test these directly by browsing `https://api.amine-abbaci.xyz` in Postman, Requestly, or your browser — browser testing only works for GET requests):
