@@ -96,6 +96,7 @@ npx tsx seed.ts
 ### Run the server
 
 ```bash
+npx prisma generate
 npm run dev
 ```
 
