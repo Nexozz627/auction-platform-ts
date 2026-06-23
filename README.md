@@ -100,7 +100,7 @@ npx prisma generate
 npm run dev
 ```
 
-##finally go to the html file and open with live server (install the vscode extension if you don't have it)
+###finally go to the html file and open with live server (install the vscode extension if you don't have it)
 
 
 The API will be available at `http://localhost:5001`
