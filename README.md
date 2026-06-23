@@ -78,7 +78,6 @@ NODE_ENV= "development"
 JWT_SECRET= (generate it and paste it here)
 JWT_EXPIRES_IN= (e.g. "7d")
 ALLOWED_ORIGINS= (enter YOUR live server link)
-VITE_API_URL= http://localhost:5001
 GOOGLE_CLIENT_ID= "493489394378-8hiu09vp5r3rg3gvqca05og2lsi3cj34.apps.googleusercontent.com"
 ```
 
